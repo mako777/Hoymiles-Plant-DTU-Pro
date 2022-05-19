@@ -52,7 +52,7 @@ rm hoymiles_dtu.zip
 
 | Key | Type | Required | Default | Description |
 | --- | --- | --- | --- | --- |
-| `name` | `string` | `False` | `Hoymiles PV` | Name of sensor |
+| `name` | `string` | `False` | `Hoymiles DTU` | Name of sensor |
 | `host` | `string` | `True` | - | Local DTU-Pro host |
 | `monitored_conditions` | `list` | `True` | - | List of conditions to monitor |
 | `monitored_conditions_pv` | `list` | `True` | - | List of conditions for pv to monitor |
