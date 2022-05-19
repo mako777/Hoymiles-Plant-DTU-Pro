@@ -74,7 +74,8 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class HoymilesDTUSensor(SensorEntity):
     """ Entity representing global variables """
     def __init__(self, name, sensor_type, updater):
-        self._attr_unique_id = name + " " + sensor_type
+        self._attr_unique_id = "hoymiles_dtu_" + sensor_type
+        self.entity_id = "sensor." + self.unique_id
         self._client_name = name
         self._type = sensor_type
         self._updater = updater
@@ -123,7 +124,8 @@ class HoymilesDTUSensor(SensorEntity):
 class HoymilesPVSensor(SensorEntity):
     """ Entity representing per panel variables """
     def __init__(self, name, serial_number, panel_number, panel, sensor_type, updater):
-        self._attr_unique_id = name + " " + serial_number + " PV " + str(panel) + " " + sensor_type
+        self._attr_unique_id = "hoymiles_dtu_" + serial_number + "_pv_" + str(panel) + "_" + sensor_type
+        self.entity_id = "sensor." + self.unique_id
         self._client_name = name +' '+ serial_number +' PV '+str(panel)
         self._serial_number = serial_number
         self._panel_number = panel_number
