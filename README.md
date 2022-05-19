@@ -57,7 +57,7 @@ rm hoymiles_dtu.zip
 | `monitored_conditions` | `list` | `True` | - | List of conditions to monitor |
 | `monitored_conditions_pv` | `list` | `True` | - | List of conditions for pv to monitor |
 | `panels` | `float` | `True` | - | Number of PV panels |
-| `scan_interval` | `time period` | `False` | `00:02:00` | Interval between sensor updates |
+| `scan_interval` | `time period` | `False` | `15` | Interval in seconds between sensor updates |
 
 ### Possible monitored conditions
 
