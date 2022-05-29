@@ -7,7 +7,7 @@ import voluptuous as vol
 
 from homeassistant.util import Throttle
 from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity, SensorDeviceClass, SensorStateClass
-from homeassistant.const import (CONF_HOST, CONF_NAME, CONF_MONITORED_CONDITIONS, CONF_SCAN_INTERVAL)
+from homeassistant.const import CONF_HOST, CONF_NAME, CONF_MONITORED_CONDITIONS, CONF_SCAN_INTERVAL
 from homeassistant.const import POWER_WATT, ENERGY_KILO_WATT_HOUR, ELECTRIC_CURRENT_AMPERE, ELECTRIC_POTENTIAL_VOLT, TEMP_CELSIUS
 import homeassistant.helpers.config_validation as cv
 
@@ -21,7 +21,7 @@ CONF_PANELS = "panels"
 
 _LOGGER = logging.getLogger(__name__)
 DEFAULT_NAME = 'Hoymiles DTU'
-DEFAULT_SCAN_INTERVAL = timedelta(seconds=15)
+DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 
 # opis, jednostka, urzadzenie, klasa, reset, mnoznik, utrzymanie wartosci (0-brak, 1-tak, 2-do polnocy)
 SENSOR_TYPES = {
@@ -90,7 +90,9 @@ class HoymilesDTUSensor(SensorEntity):
 
     @property
     def state(self):
-        if self._updater.data is not None and (0<=self._updater.data.total_production-self._total_production_last<500 or (self._updater.data.total_production>0 and self._total_production_last==1)):
+        if self._updater.data is not None and (0<=self._updater.data.total_production-self._total_production_last<500
+                                               or (self._updater.data.total_production>0 and self._total_production_last==1)
+                                               or (self._updater.data.total_production>0 and self._updater.exception_timeout==1)):
             temp = vars(self._updater.data)
             self._total_production_last = self._updater.data.total_production
             self._state = temp[self._type]/SENSOR_TYPES[self._type][5]
@@ -143,7 +145,9 @@ class HoymilesPVSensor(SensorEntity):
 
     @property
     def state(self):
-        if self._updater.data is not None and (0<=self._updater.data.total_production-self._total_production_last<500 or (self._updater.data.total_production>0 and self._total_production_last==1)):
+        if self._updater.data is not None and (0<=self._updater.data.total_production-self._total_production_last<500
+                                               or (self._updater.data.total_production>0 and self._total_production_last==1)
+                                               or (self._updater.data.total_production>0 and self._updater.exception_timeout==1)):
             temp = self._updater.data.microinverter_data[self._panel_number-1]
             self._total_production_last = self._updater.data.total_production
             self._state = temp[PV_TYPES[self._type][0]]/PV_TYPES[self._type][6]
@@ -175,14 +179,19 @@ class HoymilesPVSensor(SensorEntity):
         self._updater.update()
 
 class HoymilesDTUUpdater:
-    def __init__(self, host, scan_interval):
-        self.host = host
-        self.update = Throttle(scan_interval)(self._update)
-        self.data = None
-        self.plant = HoymilesModbusTCP(self.host, microinverter_type=MicroinverterType.HM)
+   """ Read DTU and update plant data """
+   def __init__(self, host, scan_interval):
+      self.host = host
+      self.update = Throttle(scan_interval)(self._update)
+      self.data = None
+      self.plant = HoymilesModbusTCP(self.host, microinverter_type=MicroinverterType.HM)
+      self.exception_timeout = 0
 
-    def _update(self):
-        try:
-            self.data = self.plant.plant_data
-        except:
-            self.data = None
+   def _update(self):
+      try:
+         self.data = self.plant.plant_data
+         if(self.exception_timeout > 0):
+            self.exception_timeout -= 1
+      except:
+         self.data = None
+         self.exception_timeout = 4
